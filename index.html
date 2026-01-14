@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MDI Site & Addition Tool</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background-color: #f5f5f5;
+    }
+    #app-container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+    #sidebar {
+      width: 340px;
+      background-color: #ffffff;
+      border-right: 1px solid #ccc;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      background-color: white;
+    }
+    #survey-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #canvas-overlay-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .panel {
+      margin-bottom: 16px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    .panel h3 {
+      margin-top: 0;
+    }
+    #export-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 340px;
+      background-color: #F7F7F7;
+      border: 4px solid black;
+      border-radius: 6px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    #export-panel img {
+      width: 140px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <div id="sidebar">
+      <div class="panel">
+        <h3>Upload Survey PDF</h3>
+        <input type="file" id="pdf-file-input" accept="application/pdf">
+      </div>
+      <div class="panel">
+        <h3>Set Scale</h3>
+        <button id="start-scale-btn">Pick Scale</button>
+        <span id="scale-display">Not Set</span>
+      </div>
+      <div class="panel">
+        <h3>Polygons</h3>
+        <select id="polygon-type-select">
+          <option value="site">Site</option>
+          <option value="building">Building</option>
+          <option value="driveway">Driveway</option>
+          <option value="patio">Patio</option>
+          <option value="impervious">Impervious</option>
+          <option value="pervious">Pervious</option>
+        </select><br>
+        <label>Length (ft): <input type="number" id="length-input"></label><br>
+        <label>Width (ft): <input type="number" id="width-input"></label><br>
+        <label>Rotation: <input type="range" id="rotation-input" min="0" max="359" disabled>
+          <span id="rotation-value">0°</span></label><br>
+        <button id="add-polygon-btn">Add Polygon</button>
+        <button id="delete-active-polygon-btn">Delete Selected</button>
+      </div>
+      <div class="panel">
+        <h3>Export</h3>
+        <button id="export-btn">Export PNG</button>
+      </div>
+      <div class="panel">
+        <h3>Impervious Summary</h3>
+        <label>Max Allowed (%): <input type="number" id="max-impervious-input"></label><br>
+        Site Area: <span id="site-area-display">0</span> SF<br>
+        Impervious Area: <span id="impervious-area-display">0</span> SF<br>
+        Percent: <span id="impervious-percent-display">0%</span><br>
+        Status: <span id="impervious-status">OK</span>
+      </div>
+      <div class="panel">
+        <h3>Legend</h3>
+        <div class="legend-item"><div class="legend-color" style="background:#cccccc"></div> Site</div>
+        <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div> Building</div>
+        <div class="legend-item"><div class="legend-color" style="background:#0000ff"></div> Driveway</div>
+        <div class="legend-item"><div class="legend-color" style="background:#00ff00"></div> Patio</div>
+        <div class="legend-item"><div class="legend-color" style="background:#888888"></div> Impervious</div>
+        <div class="legend-item"><div class="legend-color" style="background:#dddddd"></div> Pervious</div>
+      </div>
+    </div>
+    <div id="canvas-container">
+      <canvas id="survey-canvas"></canvas>
+      <div id="canvas-overlay-hint">Click to select or drag polygons</div>
+      <div id="export-panel">
+        <img src="mdi-logo.png" alt="MDI Logo">
+        <h3>Impervious Summary</h3>
+        Site Area: <span id="exp-site-area">0</span> SF<br>
+        Impervious Area: <span id="exp-imp-area">0</span> SF<br>
+        Percent: <span id="exp-imp-percent">0%</span><br>
+        Status: <span id="exp-status">OK</span>
+        <h3>Legend</h3>
+        <div class="legend-item"><div class="legend-color" style="background:#cccccc"></div> Site</div>
+        <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div> Building</div>
+        <div class="legend-item"><div class="legend-color" style="background:#0000ff"></div> Driveway</div>
+        <div class="legend-item"><div class="legend-color" style="background:#00ff00"></div> Patio</div>
+        <div class="legend-item"><div class="legend-color" style="background:#888888"></div> Impervious</div>
+        <div class="legend-item"><div class="legend-color" style="background:#dddddd"></div> Pervious</div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+  </script>
+  <script>
+    // JavaScript logic placeholder
+    // Full implementation would go here
+  </script>
+</body>
+</html>
