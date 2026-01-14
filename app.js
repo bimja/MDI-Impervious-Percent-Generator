@@ -611,6 +611,7 @@ const exportBtn = document.getElementById("export-btn");
 const exportPanel = document.getElementById("export-panel");
 
 exportBtn.addEventListener("click", async () => {
+
   if (!canvas.width || !canvas.height) return;
 
   // Ensure export panel is visible so layout is correct
@@ -737,7 +738,7 @@ exportBtn.addEventListener("click", async () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-}
+});
 
 /* -----------------------------------------------------------
    INITIAL RENDER
