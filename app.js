@@ -307,16 +307,11 @@ function drawPolygonHandles(ctx, polygon, scale) {
 ----------------------------------------------------------- */
 
 function render() {
-  // This will be fully implemented in Part 3.
-  // For now, clear canvas and draw PDF + polygons if available.
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!pdfPage) {
-    // simple background until PDF is loaded
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  } else {
-    // PDF will be drawn in the final render implementation
   }
 
   const scale = scaleIsSet ? scaleFactor : 1;
@@ -326,6 +321,7 @@ function render() {
     drawPolygonHandles(ctx, poly, scale);
   }
 }
+
 
 
 /* -----------------------------------------------------------
@@ -745,3 +741,8 @@ exportBtn.addEventListener("click", async () => {
 ----------------------------------------------------------- */
 
 render();
+   INITIAL RENDER
+----------------------------------------------------------- */
+
+render();
+
